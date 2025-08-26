@@ -1,0 +1,164 @@
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-tachometer-alt text-primary me-2"></i>Tableau de bord administrateur</h2>
+    <div class="badge bg-success fs-6">
+      <i class="fas fa-clock me-1"></i>
+      <%= Time.current.strftime("%d/%m/%Y %H:%M") %>
+    </div>
+  </div>
+
+  <!-- Statistiques principales -->
+  <div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="card border-primary">
+        <div class="card-body text-center">
+          <i class="fas fa-users fa-2x text-primary mb-2"></i>
+          <h3 class="fw-bold text-primary"><%= @total_users %></h3>
+          <p class="text-muted mb-0">Utilisateurs</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="card border-info">
+        <div class="card-body text-center">
+          <i class="fas fa-map-marker-alt fa-2x text-info mb-2"></i>
+          <h3 class="fw-bold text-info"><%= @total_stations %></h3>
+          <p class="text-muted mb-0">Stations</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="card border-success">
+        <div class="card-body text-center">
+          <i class="fas fa-baby-carriage fa-2x text-success mb-2"></i>
+          <h3 class="fw-bold text-success"><%= @total_strollers %></h3>
+          <p class="text-muted mb-0">Poussettes</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="card border-warning">
+        <div class="card-body text-center">
+          <i class="fas fa-euro-sign fa-2x text-warning mb-2"></i>
+          <h3 class="fw-bold text-warning"><%= number_to_currency(@revenue_today, unit: '€', precision: 2) %></h3>
+          <p class="text-muted mb-0">Revenus aujourd'hui</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statut des poussettes -->
+  <div class="row mb-4">
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Statut des poussettes</h5>
+        </div>
+        <div class="card-body">
+          <div class="row text-center">
+            <div class="col-md-3">
+              <div class="p-3">
+                <h4 class="text-success fw-bold"><%= @available_strollers %></h4>
+                <p class="text-muted mb-0">Disponibles</p>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="p-3">
+                <h4 class="text-warning fw-bold"><%= @in_use_strollers %></h4>
+                <p class="text-muted mb-0">En cours d'utilisation</p>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="p-3">
+                <h4 class="text-danger fw-bold"><%= @maintenance_strollers %></h4>
+                <p class="text-muted mb-0">En maintenance</p>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="p-3">
+                <h4 class="text-dark fw-bold"><%= @low_battery_strollers %></h4>
+                <p class="text-muted mb-0">Batterie faible</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Activité des trajets</h5>
+        </div>
+        <div class="card-body">
+          <div class="text-center mb-3">
+            <h3 class="text-primary fw-bold"><%= @active_rides %></h3>
+            <p class="text-muted">Trajets en cours</p>
+          </div>
+          <div class="text-center">
+            <h4 class="text-success"><%= @completed_rides_today %></h4>
+            <p class="text-muted mb-0">Trajets terminés aujourd'hui</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Maintenance et nettoyage -->
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="card border-warning">
+        <div class="card-header bg-warning text-dark">
+          <h5 class="mb-0"><i class="fas fa-tools me-2"></i>Maintenances en attente</h5>
+        </div>
+        <div class="card-body text-center">
+          <h2 class="fw-bold text-warning"><%= @pending_maintenances %></h2>
+          <p class="mb-3">Interventions nécessaires</p>
+          <%= link_to "Voir les maintenances", maintenances_path, class: "btn btn-warning" %>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card border-info">
+        <div class="card-header bg-info text-white">
+          <h5 class="mb-0"><i class="fas fa-spray-can me-2"></i>Nettoyages récents</h5>
+        </div>
+        <div class="card-body text-center">
+          <h2 class="fw-bold text-info"><%= @recent_cleanings %></h2>
+          <p class="mb-3">Cette semaine</p>
+          <%= link_to "Voir les nettoyages", cleanings_path, class: "btn btn-info" %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions rapides -->
+  <div class="card">
+    <div class="card-header">
+      <h5 class="mb-0">Actions rapides</h5>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-3 mb-2">
+          <%= link_to stations_path, class: "btn btn-outline-primary w-100" do %>
+            <i class="fas fa-map-marker-alt me-2"></i>Gérer les stations
+          <% end %>
+        </div>
+        <div class="col-md-3 mb-2">
+          <%= link_to strollers_path, class: "btn btn-outline-success w-100" do %>
+            <i class="fas fa-baby-carriage me-2"></i>Gérer les poussettes
+          <% end %>
+        </div>
+        <div class="col-md-3 mb-2">
+          <%= link_to maintenances_path, class: "btn btn-outline-warning w-100" do %>
+            <i class="fas fa-tools me-2"></i>Maintenances
+          <% end %>
+        </div>
+        <div class="col-md-3 mb-2">
+          <%= link_to cleanings_path, class: "btn btn-outline-info w-100" do %>
+            <i class="fas fa-spray-can me-2"></i>Nettoyages
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

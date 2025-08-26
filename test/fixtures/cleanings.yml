@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  stroller: one
+  cleaned_by: one
+  cleaning_type: MyString
+  notes: MyText
+  next_due: 2025-08-23 19:22:47
+
+two:
+  stroller: two
+  cleaned_by: two
+  cleaning_type: MyString
+  notes: MyText
+  next_due: 2025-08-23 19:22:47

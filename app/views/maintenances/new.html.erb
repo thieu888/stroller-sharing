@@ -1,0 +1,76 @@
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header">
+          <h4 class="mb-0"><i class="fas fa-tools text-warning me-2"></i>Signaler une maintenance</h4>
+        </div>
+        <div class="card-body">
+          <%= form_with(model: @maintenance, local: true) do |form| %>
+            <% if @maintenance.errors.any? %>
+              <div class="alert alert-danger">
+                <h6>Erreurs:</h6>
+                <ul class="mb-0">
+                  <% @maintenance.errors.full_messages.each do |message| %>
+                    <li><%= message %></li>
+                  <% end %>
+                </ul>
+              </div>
+            <% end %>
+
+            <div class="mb-3">
+              <%= form.label :stroller_id, "Poussette", class: "form-label" %>
+              <% if @stroller %>
+                <%= form.hidden_field :stroller_id, value: @stroller.id %>
+                <input type="text" class="form-control" value="<%= @stroller.qr_code %>" readonly>
+              <% else %>
+                <%= form.collection_select :stroller_id, Stroller.all, :id, :qr_code, 
+                    { prompt: "Sélectionnez une poussette" }, { class: "form-select" } %>
+              <% end %>
+            </div>
+
+            <div class="mb-3">
+              <%= form.label :maintenance_type, "Type de maintenance", class: "form-label" %>
+              <%= form.select :maintenance_type, 
+                  options_for_select([
+                    ['Réparation mécanique', 'mechanical'],
+                    ['Problème électrique', 'electrical'],
+                    ['Batterie défaillante', 'battery'],
+                    ['Problème de roues', 'wheels'],
+                    ['Système de freinage', 'brakes'],
+                    ['Autre', 'other']
+                  ]), 
+                  { prompt: "Sélectionnez le type" }, 
+                  { class: "form-select" } %>
+            </div>
+
+            <div class="mb-3">
+              <%= form.label :priority, "Priorité", class: "form-label" %>
+              <%= form.select :priority, 
+                  options_for_select([
+                    ['Faible', 'low'],
+                    ['Moyenne', 'medium'],
+                    ['Élevée', 'high']
+                  ]), 
+                  { prompt: "Sélectionnez la priorité" }, 
+                  { class: "form-select" } %>
+            </div>
+
+            <div class="mb-3">
+              <%= form.label :description, "Description du problème", class: "form-label" %>
+              <%= form.text_area :description, 
+                  placeholder: "Décrivez le problème en détail...", 
+                  class: "form-control", 
+                  rows: 4 %>
+            </div>
+
+            <div class="d-flex gap-2">
+              <%= form.submit "Signaler la maintenance", class: "btn btn-warning" %>
+              <%= link_to "Annuler", maintenances_path, class: "btn btn-secondary" %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

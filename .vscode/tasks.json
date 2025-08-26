@@ -1,0 +1,29 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Rails: Start Server",
+      "type": "shell",
+      "command": "bin/dev",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Rails: Test",
+      "type": "shell",
+      "command": "bundle exec rails test",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Rails: Routes",
+      "type": "shell",
+      "command": "bundle exec rails routes",
+      "problemMatcher": []
+    }
+  ]
+}

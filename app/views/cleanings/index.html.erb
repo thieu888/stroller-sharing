@@ -1,0 +1,60 @@
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-spray-can text-info me-2"></i>Nettoyages</h2>
+    <%= link_to "Enregistrer un nettoyage", new_cleaning_path, class: "btn btn-info" %>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-md-12">
+      <div class="card border-info">
+        <div class="card-body text-center">
+          <h3 class="text-info fw-bold"><%= @recent_cleanings %></h3>
+          <p class="mb-0">Nettoyages cette semaine</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h5 class="mb-0">Historique des nettoyages</h5>
+    </div>
+    <div class="card-body">
+      <% if @cleanings.any? %>
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Poussette</th>
+                <th>Type de nettoyage</th>
+                <th>Nettoyé par</th>
+                <th>Date</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @cleanings.each do |cleaning| %>
+                <tr>
+                  <td>
+                    <code><%= cleaning.stroller.qr_code %></code>
+                  </td>
+                  <td>
+                    <span class="badge bg-info"><%= cleaning.cleaning_type.humanize %></span>
+                  </td>
+                  <td><%= cleaning.cleaned_by.email %></td>
+                  <td><%= cleaning.cleaned_at.strftime("%d/%m/%Y %H:%M") %></td>
+                  <td><%= truncate(cleaning.notes, length: 50) if cleaning.notes %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="text-center text-muted py-4">
+          <i class="fas fa-spray-can fa-3x mb-3"></i>
+          <p>Aucun nettoyage enregistré</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

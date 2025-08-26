@@ -2,3 +2,5 @@
 import "@hotwired/turbo-rails"
 import "controllers"
 import * as bootstrap from "bootstrap"
+import "./stroller_map"
+import "./qr_scanner"

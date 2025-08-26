@@ -1,0 +1,409 @@
+<div class="container py-4">
+  <div class="row mb-4">
+    <div class="col-12">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><%= link_to "Accueil", root_path %></li>
+          <li class="breadcrumb-item"><%= link_to "Poussettes", strollers_path %></li>
+          <li class="breadcrumb-item active"><%= @stroller.qr_code %></li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h1 class="display-6 fw-bold text-primary mb-3">
+                <i class="fas fa-baby-carriage me-3"></i>Poussette <%= @stroller.qr_code %>
+              </h1>
+              <div class="d-flex align-items-center gap-3">
+                <span class="badge fs-6 
+                  <%= case @stroller.status
+                      when 'available' then 'bg-success'
+                      when 'in_use' then 'bg-warning text-dark'
+                      when 'maintenance' then 'bg-danger'
+                      when 'cleaning' then 'bg-info'
+                      else 'bg-secondary'
+                      end %>">
+                  <i class="fas fa-circle me-1"></i><%= @stroller.status.humanize %>
+                </span>
+                <% if @station %>
+                  <span class="text-muted">
+                    <i class="fas fa-map-marker-alt me-1"></i>
+                    Station: <%= link_to @station.name, station_path(@station), class: "text-decoration-none" %>
+                  </span>
+                <% end %>
+              </div>
+            </div>
+            <div class="col-md-4 text-md-end">
+              <% if @stroller.status == 'available' %>
+                <button class="btn btn-success btn-lg mb-2" data-bs-toggle="modal" data-bs-target="#startRideModal">
+                  <i class="fas fa-play me-2"></i>Démarrer un trajet
+                </button>
+              <% elsif @stroller.status == 'in_use' %>
+                <button class="btn btn-warning btn-lg mb-2" disabled>
+                  <i class="fas fa-pause me-2"></i>En cours d'utilisation
+                </button>
+              <% else %>
+                <button class="btn btn-secondary btn-lg mb-2" disabled>
+                  <i class="fas fa-ban me-2"></i>Non disponible
+                </button>
+              <% end %>
+              
+              <% if user_signed_in? %>
+                <div class="d-flex gap-2 justify-content-md-end mt-2">
+                  <%= link_to "Signaler maintenance", new_maintenance_path(stroller_id: @stroller.id), 
+                      class: "btn btn-outline-warning btn-sm" %>
+                  <%= link_to "Enregistrer nettoyage", new_cleaning_path(stroller_id: @stroller.id), 
+                      class: "btn btn-outline-info btn-sm" %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div class="card text-center border-0 shadow-sm">
+        <div class="card-body">
+          <i class="fas fa-battery-three-quarters fa-2x 
+            <%= @stroller.battery_level&.> 50 ? 'text-success' : 
+                @stroller.battery_level&.> 20 ? 'text-warning' : 'text-danger' %> mb-2"></i>
+          <h4 class="fw-bold"><%= @stroller.battery_level || 'N/A' %>%</h4>
+          <p class="text-muted mb-0">Niveau de batterie</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div class="card text-center border-0 shadow-sm">
+        <div class="card-body">
+          <i class="fas fa-route fa-2x text-info mb-2"></i>
+          <h4 class="fw-bold"><%= @recent_rides.count %></h4>
+          <p class="text-muted mb-0">Trajets récents</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div class="card text-center border-0 shadow-sm">
+        <div class="card-body">
+          <i class="fas fa-clock fa-2x text-primary mb-2"></i>
+          <h4 class="fw-bold">
+            <%= @stroller.created_at.strftime("%d/%m") %>
+          </h4>
+          <p class="text-muted mb-0">Mise en service</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div class="card text-center border-0 shadow-sm">
+        <div class="card-body">
+          <i class="fas fa-qrcode fa-2x text-dark mb-2"></i>
+          <h4 class="fw-bold"><%= @stroller.qr_code %></h4>
+          <p class="text-muted mb-0">Code QR</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-8">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white">
+          <h5 class="mb-0 fw-bold">
+            <i class="fas fa-history me-2"></i>Historique des trajets récents
+          </h5>
+        </div>
+        <div class="card-body">
+          <% if @recent_rides.any? %>
+            <div class="list-group list-group-flush">
+              <% @recent_rides.each do |ride| %>
+                <div class="list-group-item border-0 px-0">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                      <h6 class="mb-1 fw-bold">
+                        <i class="fas fa-user-circle text-primary me-2"></i>
+                        <%= ride.user.email %>
+                      </h6>
+                      <p class="mb-1 text-muted">
+                        <i class="fas fa-calendar me-1"></i>
+                        <%= l(ride.created_at, format: :long) %>
+                      </p>
+                      <% if ride.start_time && ride.end_time %>
+                        <small class="text-muted">
+                          <i class="fas fa-clock me-1"></i>
+                          Durée: <%= distance_of_time_in_words(ride.start_time, ride.end_time) %>
+                        </small>
+                      <% end %>
+                    </div>
+                    <div class="text-end">
+                      <span class="badge 
+                        <%= case ride.status
+                            when 'completed' then 'bg-success'
+                            when 'in_progress' then 'bg-warning text-dark'
+                            when 'cancelled' then 'bg-danger'
+                            else 'bg-secondary'
+                            end %>">
+                        <%= ride.status&.humanize || 'En cours' %>
+                      </span>
+                      <% if ride.cost %>
+                        <div class="mt-1">
+                          <strong class="text-success"><%= number_to_currency(ride.cost, unit: "€") %></strong>
+                        </div>
+                      <% end %>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <div class="text-center py-4">
+              <i class="fas fa-route fa-3x text-muted mb-3"></i>
+              <h6 class="text-muted">Aucun trajet récent</h6>
+              <p class="text-muted mb-0">Cette poussette n'a pas encore été utilisée récemment.</p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white">
+          <h5 class="mb-0 fw-bold">
+            <i class="fas fa-tools me-2"></i>Maintenance et nettoyage
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <h6 class="fw-bold text-danger">
+                <i class="fas fa-wrench me-1"></i>Dernière maintenance
+              </h6>
+              <% last_maintenance = @stroller.maintenances.order(:created_at).last %>
+              <% if last_maintenance %>
+                <p class="text-muted mb-2">
+                  <%= l(last_maintenance.created_at, format: :short) %>
+                </p>
+                <p class="text-sm"><%= last_maintenance.issue_description %></p>
+              <% else %>
+                <p class="text-muted">Aucune maintenance enregistrée</p>
+              <% end %>
+            </div>
+            <div class="col-md-6">
+              <h6 class="fw-bold text-info">
+                <i class="fas fa-broom me-1"></i>Dernier nettoyage
+              </h6>
+              <% last_cleaning = @stroller.cleanings.order(:created_at).last %>
+              <% if last_cleaning %>
+                <p class="text-muted mb-2">
+                  <%= l(last_cleaning.created_at, format: :short) %>
+                </p>
+                <p class="text-sm">Type: <%= last_cleaning.cleaning_type %></p>
+              <% else %>
+                <p class="text-muted">Aucun nettoyage enregistré</p>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white">
+          <h5 class="mb-0 fw-bold">
+            <i class="fas fa-map me-2"></i>Localisation
+          </h5>
+        </div>
+        <div class="card-body">
+          <% if @stroller.gps_lat && @stroller.gps_lng %>
+            <div id="stroller-detail-map" style="height: 200px;" class="rounded mb-3"></div>
+            <div class="text-center">
+              <p class="text-muted mb-2">
+                <strong>Coordonnées:</strong><br>
+                <%= number_with_precision(@stroller.gps_lat, precision: 4) %>,
+                <%= number_with_precision(@stroller.gps_lng, precision: 4) %>
+              </p>
+              <button class="btn btn-outline-primary btn-sm" onclick="openStrollerDirections()">
+                <i class="fas fa-directions me-1"></i>Obtenir les directions
+              </button>
+            </div>
+          <% elsif @station %>
+            <div class="text-center py-3">
+              <i class="fas fa-building fa-3x text-primary mb-3"></i>
+              <h6>Station: <%= @station.name %></h6>
+              <p class="text-muted mb-3">
+                <%= number_with_precision(@station.gps_lat, precision: 4) %>,
+                <%= number_with_precision(@station.gps_lng, precision: 4) %>
+              </p>
+              <%= link_to "Voir la station", station_path(@station), class: "btn btn-primary btn-sm" %>
+            </div>
+          <% else %>
+            <div class="text-center py-4">
+              <i class="fas fa-question-circle fa-3x text-muted mb-3"></i>
+              <p class="text-muted">Position inconnue</p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white">
+          <h5 class="mb-0 fw-bold">
+            <i class="fas fa-cog me-2"></i>Actions
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="d-grid gap-2">
+            <% if @stroller.status == 'available' %>
+              <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#startRideModal">
+                <i class="fas fa-play me-2"></i>Démarrer un trajet
+              </button>
+            <% end %>
+            
+            <button class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#maintenanceModal">
+              <i class="fas fa-wrench me-2"></i>Signaler un problème
+            </button>
+            
+            <button class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#cleaningModal">
+              <i class="fas fa-broom me-2"></i>Programmer nettoyage
+            </button>
+            
+            <%= link_to strollers_path, class: "btn btn-outline-secondary" do %>
+              <i class="fas fa-arrow-left me-2"></i>Retour à la liste
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal pour démarrer un trajet -->
+<div class="modal fade" id="startRideModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Démarrer un trajet</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle me-2"></i>
+          La fonctionnalité de démarrage de trajet sera bientôt disponible.
+        </div>
+        <p><strong>Poussette:</strong> <%= @stroller.qr_code %></p>
+        <p><strong>Batterie:</strong> <%= @stroller.battery_level || 'N/A' %>%</p>
+        <% if @station %>
+          <p><strong>Station de départ:</strong> <%= @station.name %></p>
+        <% end %>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="button" class="btn btn-success">Confirmer le démarrage</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal pour signaler un problème -->
+<div class="modal fade" id="maintenanceModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Signaler un problème</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-warning">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          Cette fonctionnalité sera bientôt disponible.
+        </div>
+        <p>Décrivez le problème rencontré avec cette poussette.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="button" class="btn btn-warning">Signaler le problème</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal pour programmer nettoyage -->
+<div class="modal fade" id="cleaningModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Programmer un nettoyage</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle me-2"></i>
+          Cette fonctionnalité sera bientôt disponible.
+        </div>
+        <p>Programmer un nettoyage pour cette poussette.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="button" class="btn btn-info">Programmer le nettoyage</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const mapDiv = document.getElementById('stroller-detail-map');
+    if (mapDiv) {
+      // Initialiser la carte de la poussette
+      const strollerData = <%= raw @stroller_json %>;
+      
+      if (strollerData.lat && strollerData.lng) {
+        const strollerMap = new StrollerMap('stroller-detail-map', {
+          center: [strollerData.lat, strollerData.lng],
+          zoom: 16
+        });
+        
+        // Ajouter le contrôle de localisation
+        strollerMap.addLocationControl();
+        
+        // Ajouter la poussette à la carte
+        strollerMap.addStroller(strollerData);
+        
+        <% if @station %>
+          // Ajouter aussi la station si elle existe
+          const stationData = {
+            id: <%= @station.id %>,
+            name: "<%= @station.name %>",
+            lat: <%= @station.gps_lat %>,
+            lng: <%= @station.gps_lng %>,
+            capacity: <%= @station.capacity %>,
+            total_strollers: <%= @station.strollers.count %>,
+            available_strollers: <%= @station.strollers.where(status: 'available').count %>
+          };
+          strollerMap.addStation(stationData);
+        <% end %>
+      }
+    }
+  });
+  
+  function openStrollerDirections() {
+    <% if @stroller.gps_lat && @stroller.gps_lng %>
+      const lat = <%= @stroller.gps_lat %>;
+      const lng = <%= @stroller.gps_lng %>;
+      const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+      window.open(url, '_blank');
+    <% elsif @station %>
+      const lat = <%= @station.gps_lat %>;
+      const lng = <%= @station.gps_lng %>;
+      const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+      window.open(url, '_blank');
+    <% end %>
+  }
+</script>

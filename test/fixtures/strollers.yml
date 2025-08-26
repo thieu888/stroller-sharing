@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  qr_code: MyString
+  gps_lat: 9.99
+  gps_lng: 9.99
+  battery_level: 1
+  status: MyString
+  station: one
+
+two:
+  qr_code: MyString
+  gps_lat: 9.99
+  gps_lng: 9.99
+  battery_level: 1
+  status: MyString
+  station: two

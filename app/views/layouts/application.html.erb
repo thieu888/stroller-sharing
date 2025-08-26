@@ -8,9 +8,150 @@
 
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   </head>
 
   <body>
-    <%= yield %>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <div class="container">
+        <%= link_to "StrollerShare", root_path, class: "navbar-brand fw-bold" %>
+        
+        <div class="navbar-nav ms-auto">
+          <% if user_signed_in? %>
+            <button class="nav-link btn btn-link text-warning" onclick="openQRScanner()">
+              <i class="fas fa-qrcode"></i> Scanner QR
+            </button>
+            <%= link_to "Mes trajets", rides_path, class: "nav-link" %>
+            <%= link_to "Stations", stations_path, class: "nav-link" %>
+            <%= link_to "Poussettes", strollers_path, class: "nav-link" %>
+            <%= link_to "Carte", map_index_path, class: "nav-link" %>
+            
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                Gestion
+              </a>
+              <ul class="dropdown-menu">
+                <li><%= link_to "Tableau de bord", admin_dashboard_path, class: "dropdown-item" %></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><%= link_to "Maintenances", maintenances_path, class: "dropdown-item" %></li>
+                <li><%= link_to "Nettoyages", cleanings_path, class: "dropdown-item" %></li>
+              </ul>
+            </div>
+            
+            <%= link_to "Déconnexion", destroy_user_session_path, method: :delete, class: "nav-link" %>
+          <% else %>
+            <%= link_to "Stations", stations_path, class: "nav-link" %>
+            <%= link_to "Carte", map_index_path, class: "nav-link" %>
+            <%= link_to "Connexion", new_user_session_path, class: "nav-link" %>
+            <%= link_to "Inscription", new_user_registration_path, class: "nav-link" %>
+          <% end %>
+        </div>
+      </div>
+    </nav>
+
+    <main>
+      <% if notice %>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+          <%= notice %>
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      <% end %>
+      
+      <% if alert %>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          <%= alert %>
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      <% end %>
+
+      <%= yield %>
+    </main>
+
+    <!-- QR Code Scanner Modal -->
+    <div class="modal fade" id="qrScannerModal" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Scanner un QR Code</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body text-center">
+            <p class="mb-3">Pointez votre caméra vers le QR code de la poussette</p>
+            <div class="position-relative d-inline-block">
+              <video id="qrVideo" width="400" height="300" class="border rounded" style="display: none;"></video>
+              <canvas id="qrCanvas" style="display: none;"></canvas>
+              <div id="qrPlaceholder" class="border rounded d-flex align-items-center justify-content-center" 
+                   style="width: 400px; height: 300px; background-color: #f8f9fa;">
+                <div>
+                  <i class="fas fa-camera fa-3x text-muted mb-3"></i>
+                  <p class="text-muted">Cliquez sur "Démarrer le scanner" pour activer la caméra</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+            <button type="button" class="btn btn-primary" id="startScanBtn" onclick="startQRScanner()">
+              Démarrer le scanner
+            </button>
+            <button type="button" class="btn btn-danger" id="stopScanBtn" onclick="stopQRScanner()" style="display: none;">
+              Arrêter le scanner
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let qrScanner;
+
+      function openQRScanner() {
+        const modal = new bootstrap.Modal(document.getElementById('qrScannerModal'));
+        modal.show();
+      }
+
+      function startQRScanner() {
+        qrScanner = new QRCodeScanner();
+        const video = document.getElementById('qrVideo');
+        const canvas = document.getElementById('qrCanvas');
+        const placeholder = document.getElementById('qrPlaceholder');
+        
+        placeholder.style.display = 'none';
+        video.style.display = 'block';
+        
+        document.getElementById('startScanBtn').style.display = 'none';
+        document.getElementById('stopScanBtn').style.display = 'inline-block';
+        
+        qrScanner.startScanner(video, canvas);
+      }
+
+      function stopQRScanner() {
+        if (qrScanner) {
+          qrScanner.stopScanner();
+        }
+        
+        const video = document.getElementById('qrVideo');
+        const placeholder = document.getElementById('qrPlaceholder');
+        
+        video.style.display = 'none';
+        placeholder.style.display = 'flex';
+        
+        document.getElementById('startScanBtn').style.display = 'inline-block';
+        document.getElementById('stopScanBtn').style.display = 'none';
+      }
+
+      // Arrêter le scanner quand la modal se ferme
+      document.getElementById('qrScannerModal').addEventListener('hidden.bs.modal', function() {
+        stopQRScanner();
+      });
+    </script>
   </body>
 </html>

@@ -1,0 +1,25 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  user: one
+  stroller: one
+  start_time: 2025-08-23 19:22:04
+  end_time: 2025-08-23 19:22:04
+  start_lat: 9.99
+  start_lng: 9.99
+  end_lat: 9.99
+  end_lng: 9.99
+  cost: 9.99
+  status: MyString
+
+two:
+  user: two
+  stroller: two
+  start_time: 2025-08-23 19:22:04
+  end_time: 2025-08-23 19:22:04
+  start_lat: 9.99
+  start_lng: 9.99
+  end_lat: 9.99
+  end_lng: 9.99
+  cost: 9.99
+  status: MyString

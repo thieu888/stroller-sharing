@@ -1,0 +1,80 @@
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-tools text-warning me-2"></i>Maintenances</h2>
+    <%= link_to "Signaler une maintenance", new_maintenance_path, class: "btn btn-warning" %>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="card border-warning">
+        <div class="card-body text-center">
+          <h3 class="text-warning fw-bold"><%= @pending_maintenances %></h3>
+          <p class="mb-0">Maintenances en attente</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card border-success">
+        <div class="card-body text-center">
+          <h3 class="text-success fw-bold"><%= @completed_maintenances %></h3>
+          <p class="mb-0">Maintenances terminées</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h5 class="mb-0">Historique des maintenances</h5>
+    </div>
+    <div class="card-body">
+      <% if @maintenances.any? %>
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Poussette</th>
+                <th>Type</th>
+                <th>Priorité</th>
+                <th>Statut</th>
+                <th>Signalé par</th>
+                <th>Date</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @maintenances.each do |maintenance| %>
+                <tr>
+                  <td>
+                    <code><%= maintenance.stroller.qr_code %></code>
+                  </td>
+                  <td>
+                    <span class="badge bg-info"><%= maintenance.maintenance_type.humanize %></span>
+                  </td>
+                  <td>
+                    <span class="badge bg-<%= maintenance.priority == 'high' ? 'danger' : maintenance.priority == 'medium' ? 'warning' : 'secondary' %>">
+                      <%= maintenance.priority.humanize %>
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge bg-<%= maintenance.status == 'completed' ? 'success' : 'warning' %>">
+                      <%= maintenance.status.humanize %>
+                    </span>
+                  </td>
+                  <td><%= maintenance.reported_by.email %></td>
+                  <td><%= maintenance.created_at.strftime("%d/%m/%Y %H:%M") %></td>
+                  <td><%= truncate(maintenance.description, length: 50) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="text-center text-muted py-4">
+          <i class="fas fa-tools fa-3x mb-3"></i>
+          <p>Aucune maintenance enregistrée</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

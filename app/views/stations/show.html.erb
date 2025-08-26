@@ -1,0 +1,298 @@
+<div class="container py-4">
+  <div class="row mb-4">
+    <div class="col-12">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><%= link_to "Accueil", root_path %></li>
+          <li class="breadcrumb-item"><%= link_to "Stations", stations_path %></li>
+          <li class="breadcrumb-item active"><%= @station.name %></li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h1 class="display-6 fw-bold text-primary mb-3">
+                <i class="fas fa-map-marker-alt me-3"></i><%= @station.name %>
+              </h1>
+              <p class="lead text-muted mb-3">
+                Coordonnées: <%= number_with_precision(@station.gps_lat, precision: 4) %>, 
+                <%= number_with_precision(@station.gps_lng, precision: 4) %>
+              </p>
+            </div>
+            <div class="col-md-4 text-md-end">
+              <% if @available_strollers.any? %>
+                <button class="btn btn-success btn-lg" data-bs-toggle="modal" data-bs-target="#reserveModal">
+                  <i class="fas fa-book me-2"></i>Réserver une poussette
+                </button>
+              <% else %>
+                <button class="btn btn-secondary btn-lg" disabled>
+                  <i class="fas fa-exclamation-triangle me-2"></i>Aucune poussette disponible
+                </button>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div class="card text-center border-0 shadow-sm">
+        <div class="card-body">
+          <i class="fas fa-baby-carriage fa-2x text-primary mb-2"></i>
+          <h4 class="fw-bold"><%= @available_strollers.count %></h4>
+          <p class="text-muted mb-0">Disponibles</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div class="card text-center border-0 shadow-sm">
+        <div class="card-body">
+          <i class="fas fa-warehouse fa-2x text-info mb-2"></i>
+          <h4 class="fw-bold"><%= @station.capacity %></h4>
+          <p class="text-muted mb-0">Capacité totale</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div class="card text-center border-0 shadow-sm">
+        <div class="card-body">
+          <i class="fas fa-battery-three-quarters fa-2x text-success mb-2"></i>
+          <h4 class="fw-bold"><%= @available_strollers.where('battery_level > 20').count %></h4>
+          <p class="text-muted mb-0">Bien chargées</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div class="card text-center border-0 shadow-sm">
+        <div class="card-body">
+          <i class="fas fa-percentage fa-2x text-warning mb-2"></i>
+          <h4 class="fw-bold"><%= ((@total_strollers.to_f / @station.capacity) * 100).round %>%</h4>
+          <p class="text-muted mb-0">Occupation</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-8">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white">
+          <h5 class="mb-0 fw-bold">
+            <i class="fas fa-list me-2"></i>Poussettes disponibles
+          </h5>
+        </div>
+        <div class="card-body">
+          <% if @available_strollers.any? %>
+            <div class="row">
+              <% @available_strollers.each do |stroller| %>
+                <div class="col-md-6 mb-3">
+                  <div class="card border-1 h-100">
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="fw-bold text-primary mb-0">
+                          <i class="fas fa-qrcode me-1"></i>
+                          <%= stroller.qr_code %>
+                        </h6>
+                        <span class="badge bg-success">Disponible</span>
+                      </div>
+                      
+                      <div class="mb-3">
+                        <div class="d-flex justify-content-between text-sm mb-1">
+                          <span>Batterie:</span>
+                          <span class="fw-bold 
+                            <%= stroller.battery_level&.> 50 ? 'text-success' : 
+                                stroller.battery_level&.> 20 ? 'text-warning' : 'text-danger' %>">
+                            <%= stroller.battery_level || 'N/A' %>%
+                          </span>
+                        </div>
+                        <% if stroller.battery_level %>
+                          <div class="progress" style="height: 6px;">
+                            <div class="progress-bar 
+                              <%= stroller.battery_level > 50 ? 'bg-success' : 
+                                  stroller.battery_level > 20 ? 'bg-warning' : 'bg-danger' %>" 
+                              style="width: <%= stroller.battery_level %>%">
+                            </div>
+                          </div>
+                        <% end %>
+                      </div>
+
+                      <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-primary flex-fill" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#strollerModal<%= stroller.id %>">
+                          <i class="fas fa-eye me-1"></i>Détails
+                        </button>
+                        <button class="btn btn-sm btn-success">
+                          <i class="fas fa-play me-1"></i>Démarrer
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Modal pour les détails de la poussette -->
+                <div class="modal fade" id="strollerModal<%= stroller.id %>" tabindex="-1">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title">Poussette <%= stroller.qr_code %></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                      </div>
+                      <div class="modal-body">
+                        <div class="row">
+                          <div class="col-6">
+                            <strong>Code QR:</strong><br>
+                            <span class="text-muted"><%= stroller.qr_code %></span>
+                          </div>
+                          <div class="col-6">
+                            <strong>Batterie:</strong><br>
+                            <span class="text-muted"><%= stroller.battery_level || 'N/A' %>%</span>
+                          </div>
+                        </div>
+                        <hr>
+                        <div class="row">
+                          <div class="col-6">
+                            <strong>Statut:</strong><br>
+                            <span class="badge bg-success">Disponible</span>
+                          </div>
+                          <div class="col-6">
+                            <strong>Position:</strong><br>
+                            <span class="text-muted">
+                              <%= stroller.gps_lat ? "#{number_with_precision(stroller.gps_lat, precision: 4)}, #{number_with_precision(stroller.gps_lng, precision: 4)}" : "Station #{@station.name}" %>
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                        <button type="button" class="btn btn-success">
+                          <i class="fas fa-play me-1"></i>Démarrer cette poussette
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <div class="text-center py-4">
+              <i class="fas fa-exclamation-circle fa-3x text-muted mb-3"></i>
+              <h5 class="text-muted">Aucune poussette disponible</h5>
+              <p class="text-muted">Toutes les poussettes de cette station sont actuellement utilisées.</p>
+              <%= link_to "Voir d'autres stations", stations_path, class: "btn btn-primary" %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white">
+          <h5 class="mb-0 fw-bold">
+            <i class="fas fa-map me-2"></i>Localisation
+          </h5>
+        </div>
+        <div class="card-body">
+          <div id="station-detail-map" style="height: 250px;" class="rounded mb-3"></div>
+          <div class="text-center">
+            <button class="btn btn-outline-primary btn-sm" onclick="openDirections()">
+              <i class="fas fa-directions me-1"></i>Obtenir les directions
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm mt-4">
+        <div class="card-header bg-white">
+          <h5 class="mb-0 fw-bold">
+            <i class="fas fa-info-circle me-2"></i>Informations
+          </h5>
+        </div>
+        <div class="card-body">
+          <ul class="list-unstyled mb-0">
+            <li class="mb-2">
+              <i class="fas fa-clock text-primary me-2"></i>
+              <strong>Service 24h/24</strong>
+            </li>
+            <li class="mb-2">
+              <i class="fas fa-credit-card text-primary me-2"></i>
+              <strong>Paiement par application</strong>
+            </li>
+            <li class="mb-2">
+              <i class="fas fa-shield-alt text-primary me-2"></i>
+              <strong>Poussettes sécurisées</strong>
+            </li>
+            <li>
+              <i class="fas fa-tools text-primary me-2"></i>
+              <strong>Maintenance régulière</strong>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de réservation globale -->
+<div class="modal fade" id="reserveModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Réserver une poussette à <%= @station.name %></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="lead">Choisissez votre poussette et confirmez votre réservation.</p>
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle me-2"></i>
+          La fonctionnalité de réservation sera bientôt disponible.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="button" class="btn btn-success">Confirmer la réservation</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialiser la carte de la station
+    const stationMap = new StrollerMap('station-detail-map', {
+      center: [<%= @station.gps_lat %>, <%= @station.gps_lng %>],
+      zoom: 16
+    });
+    
+    // Ajouter le contrôle de localisation
+    stationMap.addLocationControl();
+    
+    // Données de la station
+    const stationData = <%= raw @station_json %>;
+    const strollersData = <%= raw @strollers_json %>;
+    
+    // Ajouter la station à la carte
+    stationMap.addStation(stationData);
+    
+    // Ajouter les poussettes individuelles
+    strollersData.forEach(stroller => {
+      stationMap.addStroller(stroller);
+    });
+  });
+  
+  function openDirections() {
+    const lat = <%= @station.gps_lat %>;
+    const lng = <%= @station.gps_lng %>;
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+    window.open(url, '_blank');
+  }
+</script>

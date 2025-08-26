@@ -1,0 +1,375 @@
+<div class="container py-4">
+  <div class="row mb-4">
+    <div class="col-12">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><%= link_to "Accueil", root_path %></li>
+          <li class="breadcrumb-item"><%= link_to "Mes trajets", rides_path %></li>
+          <li class="breadcrumb-item active">Trajet #<%= @ride.id %></li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h1 class="display-6 fw-bold text-primary mb-3">
+                <i class="fas fa-route me-3"></i>Trajet #<%= @ride.id %>
+              </h1>
+              <div class="d-flex align-items-center gap-3">
+                <span class="badge fs-6 
+                  <%= case @ride.status
+                      when 'completed' then 'bg-success'
+                      when 'in_progress' then 'bg-warning text-dark'
+                      when 'cancelled' then 'bg-danger'
+                      else 'bg-secondary'
+                      end %>">
+                  <i class="fas fa-circle me-1"></i><%= @ride.status&.humanize || 'En cours' %>
+                </span>
+                <span class="text-muted">
+                  <i class="fas fa-baby-carriage me-1"></i>
+                  Poussette: <%= link_to @stroller.qr_code, stroller_path(@stroller), class: "text-decoration-none" %>
+                </span>
+              </div>
+            </div>
+            <div class="col-md-4 text-md-end">
+              <% if @ride.status == 'in_progress' %>
+                <%= link_to end_ride_ride_path(@ride), 
+                    method: :patch, 
+                    class: "btn btn-danger btn-lg",
+                    data: { 
+                      confirm: "Êtes-vous sûr de vouloir terminer ce trajet ?",
+                      turbo_method: :patch
+                    } do %>
+                  <i class="fas fa-stop me-2"></i>Terminer le trajet
+                <% end %>
+              <% elsif @ride.cost %>
+                <h2 class="text-success mb-0">
+                  <i class="fas fa-euro-sign me-2"></i><%= number_to_currency(@ride.cost, unit: "") %>€
+                </h2>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div class="card text-center border-0 shadow-sm">
+        <div class="card-body">
+          <i class="fas fa-play fa-2x text-success mb-2"></i>
+          <h5 class="fw-bold">
+            <%= @ride.start_time ? l(@ride.start_time, format: :short) : 'Non démarré' %>
+          </h5>
+          <p class="text-muted mb-0">Heure de début</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div class="card text-center border-0 shadow-sm">
+        <div class="card-body">
+          <i class="fas fa-stop fa-2x 
+            <%= @ride.end_time ? 'text-danger' : 'text-muted' %> mb-2"></i>
+          <h5 class="fw-bold">
+            <%= @ride.end_time ? l(@ride.end_time, format: :short) : 'En cours' %>
+          </h5>
+          <p class="text-muted mb-0">Heure de fin</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div class="card text-center border-0 shadow-sm">
+        <div class="card-body">
+          <i class="fas fa-clock fa-2x text-info mb-2"></i>
+          <h5 class="fw-bold">
+            <% if @ride.start_time %>
+              <% if @ride.end_time %>
+                <%= distance_of_time_in_words(@ride.start_time, @ride.end_time) %>
+              <% else %>
+                <span id="duration-counter" data-start="<%= @ride.start_time.to_i %>"></span>
+              <% end %>
+            <% else %>
+              N/A
+            <% end %>
+          </h5>
+          <p class="text-muted mb-0">Durée</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div class="card text-center border-0 shadow-sm">
+        <div class="card-body">
+          <i class="fas fa-euro-sign fa-2x 
+            <%= @ride.cost ? 'text-success' : 'text-muted' %> mb-2"></i>
+          <h5 class="fw-bold">
+            <%= @ride.cost ? number_to_currency(@ride.cost, unit: "€") : 'À calculer' %>
+          </h5>
+          <p class="text-muted mb-0">Coût total</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-8">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white">
+          <h5 class="mb-0 fw-bold">
+            <i class="fas fa-info-circle me-2"></i>Détails du trajet
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <h6 class="fw-bold text-primary mb-3">
+                <i class="fas fa-baby-carriage me-1"></i>Poussette utilisée
+              </h6>
+              <div class="card border-1 mb-3">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="fw-bold">Code QR: <%= @stroller.qr_code %></span>
+                    <span class="badge bg-light text-dark">
+                      <%= @stroller.battery_level || 'N/A' %>%
+                    </span>
+                  </div>
+                  <p class="text-muted mb-2">
+                    <i class="fas fa-battery-three-quarters me-1"></i>
+                    Niveau de batterie au début du trajet
+                  </p>
+                  <%= link_to "Voir la poussette", stroller_path(@stroller), 
+                      class: "btn btn-sm btn-outline-primary" %>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <h6 class="fw-bold text-info mb-3">
+                <i class="fas fa-map-marker-alt me-1"></i>Station de départ
+              </h6>
+              <% if @station %>
+                <div class="card border-1 mb-3">
+                  <div class="card-body">
+                    <h6 class="fw-bold mb-1"><%= @station.name %></h6>
+                    <p class="text-muted mb-2">
+                      <i class="fas fa-location-arrow me-1"></i>
+                      <%= number_with_precision(@station.gps_lat, precision: 4) %>,
+                      <%= number_with_precision(@station.gps_lng, precision: 4) %>
+                    </p>
+                    <%= link_to "Voir la station", station_path(@station), 
+                        class: "btn btn-sm btn-outline-info" %>
+                  </div>
+                </div>
+              <% else %>
+                <p class="text-muted">Station non renseignée</p>
+              <% end %>
+            </div>
+          </div>
+
+          <hr>
+
+          <div class="row">
+            <div class="col-md-6">
+              <h6 class="fw-bold text-success mb-3">
+                <i class="fas fa-map-marker me-1"></i>Position de départ
+              </h6>
+              <% if @ride.start_lat && @ride.start_lng %>
+                <p class="text-muted">
+                  Latitude: <%= number_with_precision(@ride.start_lat, precision: 4) %><br>
+                  Longitude: <%= number_with_precision(@ride.start_lng, precision: 4) %>
+                </p>
+              <% else %>
+                <p class="text-muted">Position de départ non enregistrée</p>
+              <% end %>
+            </div>
+            <div class="col-md-6">
+              <h6 class="fw-bold text-danger mb-3">
+                <i class="fas fa-flag-checkered me-1"></i>Position d'arrivée
+              </h6>
+              <% if @ride.end_lat && @ride.end_lng %>
+                <p class="text-muted">
+                  Latitude: <%= number_with_precision(@ride.end_lat, precision: 4) %><br>
+                  Longitude: <%= number_with_precision(@ride.end_lng, precision: 4) %>
+                </p>
+              <% elsif @ride.status == 'in_progress' %>
+                <p class="text-warning">Trajet en cours...</p>
+              <% else %>
+                <p class="text-muted">Position d'arrivée non enregistrée</p>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <% if @ride.status == 'in_progress' %>
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0 fw-bold">
+              <i class="fas fa-exclamation-triangle me-2"></i>Trajet en cours
+            </h5>
+          </div>
+          <div class="card-body">
+            <p class="mb-3">Votre trajet est actuellement en cours. Vous pouvez le terminer à tout moment.</p>
+            
+            <div class="alert alert-info">
+              <h6 class="fw-bold">
+                <i class="fas fa-info-circle me-2"></i>Informations importantes
+              </h6>
+              <ul class="mb-0">
+                <li>N'oubliez pas de garer la poussette dans une station à la fin de votre trajet</li>
+                <li>Assurez-vous que la poussette est bien verrouillée</li>
+                <li>Le coût est calculé en fonction de la durée d'utilisation</li>
+              </ul>
+            </div>
+
+            <div class="d-flex gap-2 justify-content-end">
+              <%= link_to end_ride_ride_path(@ride), 
+                  method: :patch, 
+                  class: "btn btn-danger",
+                  data: { 
+                    confirm: "Êtes-vous sûr de vouloir terminer ce trajet ?",
+                    turbo_method: :patch
+                  } do %>
+                <i class="fas fa-stop me-1"></i>Terminer le trajet
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white">
+          <h5 class="mb-0 fw-bold">
+            <i class="fas fa-map me-2"></i>Trajet sur la carte
+          </h5>
+        </div>
+        <div class="card-body">
+          <div id="ride-map" style="height: 250px;" class="rounded mb-3"></div>
+          <p class="text-muted text-center mb-0">
+            <i class="fas fa-info-circle me-1"></i>
+            Carte interactive à venir
+          </p>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white">
+          <h5 class="mb-0 fw-bold">
+            <i class="fas fa-calculator me-2"></i>Calcul du coût
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="d-flex justify-content-between mb-2">
+            <span>Coût de base:</span>
+            <span class="fw-bold">1,00€</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span>Coût par minute:</span>
+            <span class="fw-bold">0,15€</span>
+          </div>
+          <% if @ride.start_time %>
+            <div class="d-flex justify-content-between mb-2">
+              <span>Durée:</span>
+              <span class="fw-bold">
+                <% if @ride.end_time %>
+                  <%= (((@ride.end_time - @ride.start_time) / 60).ceil) %> min
+                <% else %>
+                  En cours...
+                <% end %>
+              </span>
+            </div>
+          <% end %>
+          <hr>
+          <div class="d-flex justify-content-between">
+            <span class="fw-bold">Total:</span>
+            <span class="fw-bold text-success fs-5">
+              <%= @ride.cost ? number_to_currency(@ride.cost, unit: "€") : 'À calculer' %>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white">
+          <h5 class="mb-0 fw-bold">
+            <i class="fas fa-cog me-2"></i>Actions
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="d-grid gap-2">
+            <% if @ride.status == 'in_progress' %>
+              <%= link_to end_ride_ride_path(@ride), 
+                  method: :patch, 
+                  class: "btn btn-danger",
+                  data: { 
+                    confirm: "Êtes-vous sûr de vouloir terminer ce trajet ?",
+                    turbo_method: :patch
+                  } do %>
+                <i class="fas fa-stop me-2"></i>Terminer le trajet
+              <% end %>
+            <% end %>
+            
+            <%= link_to stroller_path(@stroller), class: "btn btn-outline-primary" do %>
+              <i class="fas fa-baby-carriage me-2"></i>Voir la poussette
+            <% end %>
+            
+            <% if @station %>
+              <%= link_to station_path(@station), class: "btn btn-outline-info" do %>
+                <i class="fas fa-map-marker-alt me-2"></i>Voir la station
+              <% end %>
+            <% end %>
+            
+            <%= link_to rides_path, class: "btn btn-outline-secondary" do %>
+              <i class="fas fa-arrow-left me-2"></i>Retour aux trajets
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const mapDiv = document.getElementById('ride-map');
+    if (mapDiv) {
+      mapDiv.innerHTML = '<div class="d-flex align-items-center justify-content-center h-100 bg-light text-muted"><i class="fas fa-map fa-2x"></i></div>';
+    }
+
+    <% if @ride.status == 'in_progress' && @ride.start_time %>
+      const durationCounter = document.getElementById('duration-counter');
+      if (durationCounter) {
+        const startTime = parseInt(durationCounter.getAttribute('data-start')) * 1000;
+        
+        function updateDuration() {
+          const now = new Date().getTime();
+          const duration = now - startTime;
+          
+          const hours = Math.floor(duration / (1000 * 60 * 60));
+          const minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((duration % (1000 * 60)) / 1000);
+          
+          let durationText = '';
+          if (hours > 0) {
+            durationText = `${hours}h ${minutes}m`;
+          } else if (minutes > 0) {
+            durationText = `${minutes}m ${seconds}s`;
+          } else {
+            durationText = `${seconds}s`;
+          }
+          
+          durationCounter.textContent = durationText;
+        }
+        
+        updateDuration();
+        setInterval(updateDuration, 1000);
+      }
+    <% end %>
+  });
+</script>

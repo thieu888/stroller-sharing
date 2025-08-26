@@ -1,0 +1,273 @@
+<div class="container py-4">
+  <div class="row mb-4">
+    <div class="col-12">
+      <h1 class="display-5 fw-bold text-primary mb-3">
+        <i class="fas fa-baby-carriage me-3"></i>Toutes les poussettes
+      </h1>
+      <p class="lead text-muted">Vue d'ensemble de toutes les poussettes du système</p>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div class="card text-center border-0 shadow-sm">
+        <div class="card-body">
+          <i class="fas fa-baby-carriage fa-2x text-success mb-2"></i>
+          <h4 class="fw-bold"><%= @available_strollers.count %></h4>
+          <p class="text-muted mb-0">Disponibles</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div class="card text-center border-0 shadow-sm">
+        <div class="card-body">
+          <i class="fas fa-play-circle fa-2x text-warning mb-2"></i>
+          <h4 class="fw-bold"><%= @in_use_strollers.count %></h4>
+          <p class="text-muted mb-0">En cours d'utilisation</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div class="card text-center border-0 shadow-sm">
+        <div class="card-body">
+          <i class="fas fa-tools fa-2x text-danger mb-2"></i>
+          <h4 class="fw-bold"><%= @strollers.where(status: 'maintenance').count %></h4>
+          <p class="text-muted mb-0">En maintenance</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div class="card text-center border-0 shadow-sm">
+        <div class="card-body">
+          <i class="fas fa-broom fa-2x text-info mb-2"></i>
+          <h4 class="fw-bold"><%= @strollers.where(status: 'cleaning').count %></h4>
+          <p class="text-muted mb-0">En nettoyage</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white">
+          <h5 class="mb-0 fw-bold">
+            <i class="fas fa-map me-2"></i>Carte des poussettes
+          </h5>
+        </div>
+        <div class="card-body">
+          <div id="strollers-map" style="height: 400px;" class="rounded"></div>
+          <div class="mt-3">
+            <div class="row text-center">
+              <div class="col-md-3">
+                <span class="badge bg-success me-2"></span>Disponible
+              </div>
+              <div class="col-md-3">
+                <span class="badge bg-warning me-2"></span>En cours
+              </div>
+              <div class="col-md-3">
+                <span class="badge bg-danger me-2"></span>Maintenance
+              </div>
+              <div class="col-md-3">
+                <span class="badge bg-info me-2"></span>Nettoyage
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0 fw-bold">Liste des poussettes</h5>
+          <div class="btn-group" role="group">
+            <input type="radio" class="btn-check" name="filter" id="all" autocomplete="off" checked>
+            <label class="btn btn-outline-primary" for="all">Toutes</label>
+
+            <input type="radio" class="btn-check" name="filter" id="available" autocomplete="off">
+            <label class="btn btn-outline-success" for="available">Disponibles</label>
+
+            <input type="radio" class="btn-check" name="filter" id="in-use" autocomplete="off">
+            <label class="btn btn-outline-warning" for="in-use">En cours</label>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row" id="strollers-grid">
+            <% @strollers.each do |stroller| %>
+              <div class="col-md-6 col-lg-4 mb-4 stroller-card" data-status="<%= stroller.status %>">
+                <div class="card h-100 border-1">
+                  <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                      <h6 class="fw-bold text-primary mb-0">
+                        <i class="fas fa-qrcode me-1"></i>
+                        <%= stroller.qr_code %>
+                      </h6>
+                      <span class="badge 
+                        <%= case stroller.status
+                            when 'available' then 'bg-success'
+                            when 'in_use' then 'bg-warning'
+                            when 'maintenance' then 'bg-danger'
+                            when 'cleaning' then 'bg-info'
+                            else 'bg-secondary'
+                            end %>">
+                        <%= stroller.status.humanize %>
+                      </span>
+                    </div>
+
+                    <div class="mb-3">
+                      <div class="d-flex justify-content-between text-sm mb-2">
+                        <span>Station:</span>
+                        <% if stroller.station %>
+                          <%= link_to stroller.station.name, station_path(stroller.station), 
+                              class: "text-decoration-none" %>
+                        <% else %>
+                          <span class="text-muted">Aucune</span>
+                        <% end %>
+                      </div>
+
+                      <div class="d-flex justify-content-between text-sm mb-2">
+                        <span>Batterie:</span>
+                        <span class="
+                          <%= stroller.battery_level&.> 50 ? 'text-success' : 
+                              stroller.battery_level&.> 20 ? 'text-warning' : 'text-danger' %>">
+                          <%= stroller.battery_level || 'N/A' %>%
+                        </span>
+                      </div>
+
+                      <% if stroller.battery_level %>
+                        <div class="progress mb-2" style="height: 6px;">
+                          <div class="progress-bar 
+                            <%= stroller.battery_level > 50 ? 'bg-success' : 
+                                stroller.battery_level > 20 ? 'bg-warning' : 'bg-danger' %>" 
+                            style="width: <%= stroller.battery_level %>%">
+                          </div>
+                        </div>
+                      <% end %>
+
+                      <% if stroller.gps_lat && stroller.gps_lng %>
+                        <div class="d-flex justify-content-between text-sm">
+                          <span>Position:</span>
+                          <span class="text-muted">
+                            <%= number_with_precision(stroller.gps_lat, precision: 3) %>,
+                            <%= number_with_precision(stroller.gps_lng, precision: 3) %>
+                          </span>
+                        </div>
+                      <% end %>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                      <%= link_to stroller_path(stroller), class: "btn btn-sm btn-primary flex-fill" do %>
+                        <i class="fas fa-eye me-1"></i>Détails
+                      <% end %>
+                      
+                      <% if stroller.status == 'available' %>
+                        <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#startRideModal<%= stroller.id %>">
+                          <i class="fas fa-play me-1"></i>Démarrer
+                        </button>
+                      <% elsif stroller.status == 'in_use' %>
+                        <button class="btn btn-sm btn-warning" disabled>
+                          <i class="fas fa-pause me-1"></i>En cours
+                        </button>
+                      <% end %>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Modal pour démarrer un trajet -->
+              <% if stroller.status == 'available' %>
+                <div class="modal fade" id="startRideModal<%= stroller.id %>" tabindex="-1">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title">Démarrer un trajet</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                      </div>
+                      <div class="modal-body">
+                        <p><strong>Poussette:</strong> <%= stroller.qr_code %></p>
+                        <p><strong>Station:</strong> <%= stroller.station&.name || 'Non assignée' %></p>
+                        <p><strong>Batterie:</strong> <%= stroller.battery_level || 'N/A' %>%</p>
+                        <div class="alert alert-info">
+                          <i class="fas fa-info-circle me-2"></i>
+                          La fonctionnalité de démarrage de trajet sera bientôt disponible.
+                        </div>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="button" class="btn btn-success">
+                          <i class="fas fa-play me-1"></i>Démarrer le trajet
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            <% end %>
+          </div>
+
+          <% if @strollers.empty? %>
+            <div class="text-center py-5">
+              <i class="fas fa-baby-carriage fa-4x text-muted mb-3"></i>
+              <h5 class="text-muted">Aucune poussette trouvée</h5>
+              <p class="text-muted">Il n'y a actuellement aucune poussette dans le système.</p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const filterButtons = document.querySelectorAll('input[name="filter"]');
+    const strollerCards = document.querySelectorAll('.stroller-card');
+
+    filterButtons.forEach(button => {
+      button.addEventListener('change', function() {
+        const filterValue = this.id;
+        
+        strollerCards.forEach(card => {
+          const status = card.getAttribute('data-status');
+          
+          if (filterValue === 'all') {
+            card.style.display = 'block';
+          } else if (filterValue === 'in-use' && status === 'in_use') {
+            card.style.display = 'block';
+          } else if (filterValue === 'available' && status === 'available') {
+            card.style.display = 'block';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+      });
+    });
+    
+    // Initialiser la carte des poussettes
+    const strollersMap = new StrollerMap('strollers-map', {
+      center: [48.8566, 2.3522], // Paris
+      zoom: 12
+    });
+    
+    // Ajouter le contrôle de localisation
+    strollersMap.addLocationControl();
+    
+    // Données des poussettes depuis Rails
+    const strollersData = <%= raw @strollers_json %>;
+    
+    // Ajouter les poussettes à la carte
+    strollersData.forEach(stroller => {
+      if (stroller.lat && stroller.lng) {
+        strollersMap.addStroller(stroller);
+      }
+    });
+    
+    // Ajuster la vue pour inclure toutes les poussettes
+    if (strollersData.length > 0) {
+      strollersMap.fitBounds();
+    }
+  });
+</script>
