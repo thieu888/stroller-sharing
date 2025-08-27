@@ -5,8 +5,11 @@ class Cleaning < ApplicationRecord
   validates :cleaning_type, presence: true, inclusion: { 
     in: %w[quick full disinfection deep_clean] 
   }
-  validates :cleaned_at, presence: true
 
-  scope :recent, -> { where(cleaned_at: 1.week.ago..Time.current) }
+  scope :recent, -> { where('cleaned_at >= ? OR (cleaned_at IS NULL AND created_at >= ?)', 1.week.ago, 1.week.ago) }
   scope :by_type, ->(type) { where(cleaning_type: type) }
+
+  def cleaned_at_display
+    cleaned_at || created_at
+  end
 end

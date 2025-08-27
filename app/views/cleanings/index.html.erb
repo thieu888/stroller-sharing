@@ -42,7 +42,7 @@
                     <span class="badge bg-info"><%= cleaning.cleaning_type.humanize %></span>
                   </td>
                   <td><%= cleaning.cleaned_by.email %></td>
-                  <td><%= cleaning.cleaned_at.strftime("%d/%m/%Y %H:%M") %></td>
+                  <td><%= cleaning.cleaned_at_display.strftime("%d/%m/%Y %H:%M") %></td>
                   <td><%= truncate(cleaning.notes, length: 50) if cleaning.notes %></td>
                 </tr>
               <% end %>

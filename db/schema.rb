@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_08_26_113158) do
+ActiveRecord::Schema[7.1].define(version: 2025_08_27_162518) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -22,6 +22,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_08_26_113158) do
     t.datetime "next_due"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "cleaned_at"
     t.index ["cleaned_by_id"], name: "index_cleanings_on_cleaned_by_id"
     t.index ["stroller_id"], name: "index_cleanings_on_stroller_id"
   end

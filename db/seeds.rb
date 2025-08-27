@@ -98,6 +98,34 @@ end
 
 puts "✅ Trajets de test créés"
 
+# Création de maintenances de test
+maintenance_strollers = strollers.select { |s| s.status == 'maintenance' }
+maintenance_strollers.each do |stroller|
+  Maintenance.find_or_create_by(
+    stroller: stroller,
+    reported_by: test_user
+  ) do |m|
+    m.issue_description = "#{['Problème de roue', 'Batterie défaillante', 'Système de freinage', 'Problème électrique'].sample}"
+    m.status = 'pending'
+  end
+end
+
+puts "✅ Maintenances de test créées"
+
+# Création de nettoyages de test
+strollers.sample(rand(5..10)).each do |stroller|
+  Cleaning.find_or_create_by(
+    stroller: stroller,
+    cleaned_by: test_user
+  ) do |c|
+    c.cleaning_type = ['quick', 'full', 'disinfection', 'deep_clean'].sample
+    c.notes = ['Nettoyage standard', 'Désinfection complète', 'Nettoyage après maintenance'].sample
+    c.cleaned_at = rand(1..14).days.ago
+  end
+end
+
+puts "✅ Nettoyages de test créés"
+
 puts "🎉 Seed terminé avec succès!"
 puts ""
 puts "📊 Résumé:"

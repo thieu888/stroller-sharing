@@ -28,6 +28,6 @@ class MaintenancesController < ApplicationController
   private
 
   def maintenance_params
-    params.require(:maintenance).permit(:stroller_id, :description, :maintenance_type, :priority)
+    params.require(:maintenance).permit(:stroller_id, :issue_description)
   end
 end

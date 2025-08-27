@@ -34,7 +34,7 @@ class Stroller < ApplicationRecord
   end
 
   def last_cleaning
-    cleanings.order(cleaned_at: :desc).first
+    cleanings.order(cleaned_at: :desc, created_at: :desc).first
   end
 
   def pending_maintenances
@@ -42,7 +42,11 @@ class Stroller < ApplicationRecord
   end
 
   def needs_cleaning?
-    last_cleaning.nil? || last_cleaning.cleaned_at < 1.week.ago
+    last_clean = last_cleaning
+    return true if last_clean.nil?
+    
+    cleaned_date = last_clean.cleaned_at || last_clean.created_at
+    cleaned_date < 1.week.ago
   end
 
   private

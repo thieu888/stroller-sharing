@@ -2,8 +2,11 @@ class CleaningsController < ApplicationController
   before_action :authenticate_user!
   
   def index
-    @cleanings = Cleaning.includes(:stroller, :cleaned_by).order(created_at: :desc)
-    @recent_cleanings = @cleanings.where(cleaned_at: 1.week.ago..Time.current).count
+    @cleanings = Cleaning.includes(:stroller, :cleaned_by).order(cleaned_at: :desc, created_at: :desc)
+    @recent_cleanings = @cleanings.where(
+      'cleaned_at >= ? OR (cleaned_at IS NULL AND created_at >= ?)', 
+      1.week.ago, 1.week.ago
+    ).count
   end
 
   def new

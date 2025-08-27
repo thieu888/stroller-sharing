@@ -34,8 +34,6 @@
             <thead>
               <tr>
                 <th>Poussette</th>
-                <th>Type</th>
-                <th>Priorité</th>
                 <th>Statut</th>
                 <th>Signalé par</th>
                 <th>Date</th>
@@ -49,21 +47,13 @@
                     <code><%= maintenance.stroller.qr_code %></code>
                   </td>
                   <td>
-                    <span class="badge bg-info"><%= maintenance.maintenance_type.humanize %></span>
-                  </td>
-                  <td>
-                    <span class="badge bg-<%= maintenance.priority == 'high' ? 'danger' : maintenance.priority == 'medium' ? 'warning' : 'secondary' %>">
-                      <%= maintenance.priority.humanize %>
-                    </span>
-                  </td>
-                  <td>
                     <span class="badge bg-<%= maintenance.status == 'completed' ? 'success' : 'warning' %>">
                       <%= maintenance.status.humanize %>
                     </span>
                   </td>
                   <td><%= maintenance.reported_by.email %></td>
                   <td><%= maintenance.created_at.strftime("%d/%m/%Y %H:%M") %></td>
-                  <td><%= truncate(maintenance.description, length: 50) %></td>
+                  <td><%= truncate(maintenance.issue_description, length: 50) %></td>
                 </tr>
               <% end %>
             </tbody>

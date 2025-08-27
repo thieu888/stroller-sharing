@@ -30,35 +30,8 @@
             </div>
 
             <div class="mb-3">
-              <%= form.label :maintenance_type, "Type de maintenance", class: "form-label" %>
-              <%= form.select :maintenance_type, 
-                  options_for_select([
-                    ['Réparation mécanique', 'mechanical'],
-                    ['Problème électrique', 'electrical'],
-                    ['Batterie défaillante', 'battery'],
-                    ['Problème de roues', 'wheels'],
-                    ['Système de freinage', 'brakes'],
-                    ['Autre', 'other']
-                  ]), 
-                  { prompt: "Sélectionnez le type" }, 
-                  { class: "form-select" } %>
-            </div>
-
-            <div class="mb-3">
-              <%= form.label :priority, "Priorité", class: "form-label" %>
-              <%= form.select :priority, 
-                  options_for_select([
-                    ['Faible', 'low'],
-                    ['Moyenne', 'medium'],
-                    ['Élevée', 'high']
-                  ]), 
-                  { prompt: "Sélectionnez la priorité" }, 
-                  { class: "form-select" } %>
-            </div>
-
-            <div class="mb-3">
-              <%= form.label :description, "Description du problème", class: "form-label" %>
-              <%= form.text_area :description, 
+              <%= form.label :issue_description, "Description du problème", class: "form-label" %>
+              <%= form.text_area :issue_description, 
                   placeholder: "Décrivez le problème en détail...", 
                   class: "form-control", 
                   rows: 4 %>
